@@ -1,0 +1,30 @@
+.header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  }
+#leftimg{
+  width:45px;
+  height:auto;
+}
+#rightimg{
+  width:70px;
+  height:auto;
+}
+.titles{
+  text-align:left;
+  flex:1;
+}
+#title{
+  margin: 0%;
+  font-weight: 500;
+  color:#222;
+  padding-bottom: 5px;
+  padding-left: 10px;
+}
+#title2{
+  font-size: 1.3rem;
+  margin:0;
+  color:#444;
+  padding-left: 10px;
+}
