@@ -19,20 +19,24 @@ function PressList() {
     return (
         <section className='press-list'>
             <div className='press-header'>
-            <h2 className='press-title'>PIB Press Release</h2>
-            <SearchBar setSearchTerm={setSearchTerm} />
+                <h2 className='press-title'>PIB Press Release</h2>
+                <SearchBar setSearchTerm={setSearchTerm} />
             </div>
             <div className='cards'>
-                {filteredReleases.map((release) => (
-                    <div key={release.id} className="card">
-                        <h3>{release.title}</h3>
-                        <p>{release.date}</p>
-                        <button className='video-btn'>
-                            <FaRegPlayCircle className='video-icon' />
-                            Watch
-                        </button>
-                    </div>
-                ))}
+                {filteredReleases.length > 0 ? (
+                    filteredReleases.map((release) => (
+                        <div key={release.id} className="card">
+                            <h3>{release.title}</h3>
+                            <p>{release.date}</p>
+                            <button className='video-btn'>
+                                <FaRegPlayCircle className='video-icon' />
+                                Watch
+                            </button>
+                        </div>
+                    ))
+                ) : (
+                    <div className='no-results'><p>No press release found.</p></div>
+                )}
             </div>
         </section>
     );
