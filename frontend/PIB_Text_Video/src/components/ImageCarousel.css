@@ -1,25 +1,29 @@
-
 .embla {
-  overflow: hidden;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
   margin-top: 25px;
+  overflow: hidden;
+  background-color:#eaeff5;
 }
 
 .embla__container {
   display: flex;
 }
 
-
 .embla__slide {
-  flex: 0 0 100%; 
+  flex: 0 0 100%;
   min-width: 0;
+  background-color:#eaeff5;
+  display: flex;            
+  justify-content: center;
+  align-items: center;
 }
-
 
 .carousel-image {
   width: 100%;
-  height: 400px;
-  object-fit:fill;
+  height: 320px;       
+  object-fit: contain; 
   display: block;
+  mix-blend-mode: multiply;
 }
