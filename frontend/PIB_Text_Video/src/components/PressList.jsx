@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './PressList.css'
 import SearchBar from './Searchbar.jsx';
 import { FaRegPlayCircle } from 'react-icons/fa';
@@ -6,22 +6,51 @@ import ImageCarousel from './ImageCarousel.jsx';
 import VideoModal from './VideoModal.jsx';
 
 const SAMPLE_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
-function PressList() {
-    const pressReleases = [
-        { id: 1, title: 'PM addresses Global Science Congress', date: '01 Nov 2025' },
-        { id: 2, title: 'Government launches new AI Mission', date: '31 Oct 2025' },
-        { id: 3, title: 'Agriculture sector growth report released', date: '29 Oct 2025' },
-        { id: 4, title: 'Digital India achieves new milestone', date: '27 Oct 2025' },
-    ];
+function PressList({ category, language, fromYear, toYear }) {
+    const [pressReleases, setPressReleases] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
 
     const [SearchTerm, setSearchTerm] = useState('');
-
     const [playvideo, setPlayvideo] = useState(null);
 
-    const filteredReleases = pressReleases.filter((release) =>
-        release.title.toLowerCase().includes(SearchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/releases`);
+                if (!response.ok) {
+                    throw new Error(`Failed to connect to the backend API`);
+                }
+                const data = await response.json();
+                setPressReleases(data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Erroe fetching data:", err);
+                setError("Could not load press releases. Is the backend server running?");
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const filteredReleases = pressReleases.filter((release) => {
+        const title = release.title || "";
+        const releaseCategory = release.ministry_name || "General";
+        const releaseYear = release.release_year || 0;
+
+        const matchesSearch = title.toLowerCase().includes(SearchTerm.toLowerCase());
+        const matchesCategory = (category === 'All') || (releaseCategory === category);
+
+        const from = fromYear ? parseInt(fromYear) : 0;
+        const to = toYear ? parseInt(toYear) : 9999;
+        const matchesYear = releaseYear >= from && releaseYear <= to;
+
+        return matchesSearch && matchesCategory && matchesYear;
+    });
 
     const handleWatchVideo = (release) => {
         setPlayvideo(release);
@@ -30,7 +59,8 @@ function PressList() {
     const handleCloseModal = () => {
         setPlayvideo(null);
     }
-
+    if (loading) return <div className="loading">Loading Press Releases...</div>;
+    if (error) return <div className="error-message">{error}</div>;
     return (
         <section className='press-list'>
             <div className='press-header'>
@@ -46,7 +76,7 @@ function PressList() {
                     filteredReleases.map((release) => (
                         <div key={release.id} className="card">
                             <h3>{release.title}</h3>
-                            <p>{release.date}</p>
+                            <p>{release.release_date}</p>
                             <button className='video-btn' onClick={() => handleWatchVideo(release)}>
                                 <FaRegPlayCircle className='video-icon' />
                                 Watch
