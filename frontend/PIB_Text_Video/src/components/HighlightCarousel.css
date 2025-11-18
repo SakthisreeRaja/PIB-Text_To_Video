@@ -1,0 +1,66 @@
+.highlight-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  
+  height: 100%;              
+  min-height: 260px;          
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.highlight-slide {
+  flex: 1;
+  overflow-y: auto;           
+  padding-right: 5px;
+}
+
+.highlight-slide::-webkit-scrollbar {
+  width: 4px;
+}
+.highlight-slide::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.highlight-text {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #333;
+  animation: fadeSlide 0.4s ease-in-out;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.highlight-dots {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: #ccc;
+  display: inline-block;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dot.active {
+  background: #003399;
+  transform: scale(1.2);
+}
