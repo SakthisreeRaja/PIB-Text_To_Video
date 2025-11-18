@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import "./HighlightCarousel.css";
+import { useTranslation } from 'react-i18next';
 
 function HighlightCarousel({ items = [] }) {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -16,7 +18,7 @@ function HighlightCarousel({ items = [] }) {
 
   return (
     <div className="highlight-box">
-      <h3 className="highlight-title">Quick Highlights</h3>
+      <h3 className="highlight-title">{t('quick_highlights')}</h3>
 
       <div className="highlight-slide">
         <p key={index} className="highlight-text">{items[index]}</p>

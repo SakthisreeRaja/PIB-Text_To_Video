@@ -4,6 +4,7 @@ import SearchBar from './Searchbar.jsx';
 import { FaRegPlayCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import ImageCarousel from './ImageCarousel.jsx';
 import VideoModal from './VideoModal.jsx';
+import { useTranslation } from 'react-i18next';
 
 const SAMPLE_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -28,7 +29,16 @@ function parseDate(d) {
   return new Date(year, month, day, h, m).getTime();
 }
 
+// --- HELPER TO REMOVE 'by PIB Delhi' ---
+const cleanDateDisplay = (dateStr) => {
+  if (!dateStr) return "";
+  // Split at ' by ' and take the first part (the date/time)
+  return dateStr.split(' by ')[0];
+};
+
 function PressList({ category, language, day, month, year, onSortedData }) {
+  const { t } = useTranslation();
+
   const [pressReleases, setPressReleases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,7 +61,7 @@ function PressList({ category, language, day, month, year, onSortedData }) {
         }
       } catch (err) {
         if (!cancelled) {
-          setError("Could not load press releases.");
+          setError(t('error_load_releases'));
           setLoading(false);
         }
       }
@@ -101,24 +111,24 @@ function PressList({ category, language, day, month, year, onSortedData }) {
       <div className="loading-container">
         <div className="loading">
           <div className="spinner"></div>
-          <p>Loading Press Releases...</p>
+          <p>{t('loading')}</p>
         </div>
       </div>
     );
   }
 
-  if (error) return <div className="error-message">{error}</div>;
+ if (error) return <div className="error-message">{t('error_load_releases')}</div>;
 
   return (
     <section className='press-list'>
       <div className='press-header'>
-        <h2 className='press-title'>PIB Press Release</h2>
+        <h2 className='press-title'>{t('app_title')}</h2>
       </div>
 
       <ImageCarousel />
 
       <div className='cards-header'>
-        <h3 className='cards-title'>Latest Releases</h3>
+        <h3 className='cards-title'>{t('latest_releases')}</h3>
         <SearchBar setSearchTerm={setSearchTerm} />
       </div>
 
@@ -127,28 +137,34 @@ function PressList({ category, language, day, month, year, onSortedData }) {
           currentItems.map((release) => (
             <div key={release.id} className="card">
               <h3>{release.title}</h3>
-              <p>{release.release_date}</p>
+              
+              <p>{cleanDateDisplay(release.release_date)}</p>
+              
               <button className='video-btn' onClick={() => setPlayvideo(release)}>
                 <FaRegPlayCircle className='video-icon' />
-                Watch
+                {t('watch_btn')}
               </button>
             </div>
           ))
         ) : (
-          <div className='no-results'><p>No press release found.</p></div>
+          <div className='no-results'>
+            <p>{t('no_results')}</p>
+          </div>
         )}
       </div>
 
       {sortedReleases.length > ITEMS_PER_PAGE && (
         <div className="pagination">
           <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="page-btn">
-            <FaChevronLeft /> Prev
+            <FaChevronLeft /> {t('prev_btn')}
           </button>
 
-          <span className="page-info">Page {currentPage} of {totalPages}</span>
+          <span className="page-info">
+            {t('page_info', { current: currentPage, total: totalPages })}
+          </span>
 
           <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="page-btn">
-            Next <FaChevronRight />
+            {t('next_btn')} <FaChevronRight />
           </button>
         </div>
       )}

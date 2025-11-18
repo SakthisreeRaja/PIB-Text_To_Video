@@ -2,6 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import './VideoModal.css';
 import { FaTimes } from 'react-icons/fa';
 
+
+const cleanDateDisplay = (dateStr) => {
+    if (!dateStr) return "";
+    return dateStr.split(' by ')[0];
+};
+
 function VideoModal({ releaseData, videoSrc, onClose }) {
 
     const videoRef = useRef(null);
@@ -10,10 +16,10 @@ function VideoModal({ releaseData, videoSrc, onClose }) {
         document.body.style.overflow = 'hidden';
 
         if (videoRef.current) {
-      videoRef.current.play().catch(error => {
-        console.error("Autoplay was prevented by browser policy:", error);
-      });
-    }
+            videoRef.current.play().catch(error => {
+                console.error("Autoplay was prevented by browser policy:", error);
+            });
+        }
 
         const handleKeyDown = (e) => {
             if (!videoRef.current) return;
@@ -28,12 +34,13 @@ function VideoModal({ releaseData, videoSrc, onClose }) {
                 videoRef.current.currentTime -= 5;
             }
         };
-        window.addEventListener('keydown',handleKeyDown);
+        window.addEventListener('keydown', handleKeyDown);
         return () => {
             document.body.style.overflow = 'auto';
-            window.removeEventListener('keydown',handleKeyDown);
+            window.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
+
     return (
         <div className='modal-overlay' onClick={onClose}>
             <div className='modal-content' onClick={(event) => event.stopPropagation()}>
@@ -45,15 +52,16 @@ function VideoModal({ releaseData, videoSrc, onClose }) {
                     className='modal-video'
                     src={videoSrc}
                     controls
-                    muted   
+                    muted
                     playsInline
                     disablePictureInPicture />
                 <div className="modal-info">
                     <h3 className="modal-title">{releaseData.title}</h3>
-                    <p className="modal-date">{releaseData.date}</p>
-                    <p className="modal-description">
-                        This is a placeholder for the press release description. When the backend is ready, this text will be dynamic.
+                    
+                    <p className="modal-date" style={{ marginTop: '10px', color: '#555' }}>
+                        {cleanDateDisplay(releaseData.release_date)}
                     </p>
+                    
                 </div>
             </div>
         </div>
