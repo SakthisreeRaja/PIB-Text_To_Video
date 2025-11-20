@@ -2,15 +2,27 @@ import React, { useEffect, useRef } from 'react';
 import './VideoModal.css';
 import { FaTimes } from 'react-icons/fa';
 
-
 const cleanDateDisplay = (dateStr) => {
     if (!dateStr) return "";
     return dateStr.split(' by ')[0];
 };
 
-function VideoModal({ releaseData, videoSrc, onClose }) {
+
+const getTranslatedTitle = (data, lang) => {
+
+    if (!lang || lang === 'en') {
+        return data.title;
+    }
+
+
+    const titleKey = `title_${lang}`;
+    return data[titleKey] || data.title;
+};
+
+function VideoModal({ releaseData, videoSrc, onClose, language }) {
 
     const videoRef = useRef(null);
+    const displayTitle = getTranslatedTitle(releaseData, language);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -54,14 +66,16 @@ function VideoModal({ releaseData, videoSrc, onClose }) {
                     controls
                     muted
                     playsInline
-                    disablePictureInPicture />
+                    disablePictureInPicture
+                />
                 <div className="modal-info">
-                    <h3 className="modal-title">{releaseData.title}</h3>
-                    
+
+                    <h3 className="modal-title">{displayTitle}</h3>
+
                     <p className="modal-date" style={{ marginTop: '10px', color: '#555' }}>
                         {cleanDateDisplay(releaseData.release_date)}
                     </p>
-                    
+
                 </div>
             </div>
         </div>

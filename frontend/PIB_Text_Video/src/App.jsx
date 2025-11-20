@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import PressList from './components/PressList.jsx';
 import HighlightCarousel from './components/HighlightCarousel.jsx';
@@ -6,30 +6,35 @@ import { useTranslation } from 'react-i18next';
 
 function App() {
   const { t, i18n } = useTranslation();
-
   const [category, setCategory] = useState('All Ministry');
   const [language, setLanguage] = useState(i18n.resolvedLanguage || 'en');
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
-
   const [tempCategory, setTempCategory] = useState('All Ministry');
   const [tempLanguage, setTempLanguage] = useState(i18n.resolvedLanguage || 'en');
   const [tempDay, setTempDay] = useState('');
   const [tempMonth, setTempMonth] = useState('');
   const [tempYear, setTempYear] = useState('');
-
+  const [allReleases, setAllReleases] = useState([]); 
   const [highlightItems, setHighlightItems] = useState([]);
-
-  const getTopHighlights = (sortedList) => {
-    return Array.isArray(sortedList)
-      ? sortedList.slice(0, 10).map(item => item.title)
-      : [];
-  };
-
   const handleSortedData = (sortedList) => {
-    setHighlightItems(getTopHighlights(sortedList));
+    setAllReleases(sortedList);
   };
+  useEffect(() => {
+    if (Array.isArray(allReleases) && allReleases.length > 0) {
+      const top10 = allReleases.slice(0, 10).map(item => {
+        if (!language || language === 'en') {
+          return item.title;
+        }
+
+        const key = `title_${language}`;
+        return item[key] || item.title;
+      });
+
+      setHighlightItems(top10);
+    }
+  }, [allReleases, language]); 
 
   const handleApply = () => {
     setCategory(tempCategory);
@@ -37,7 +42,6 @@ function App() {
     setDay(tempDay);
     setMonth(tempMonth);
     setYear(tempYear);
-
     i18n.changeLanguage(tempLanguage);
   };
 
@@ -51,8 +55,6 @@ function App() {
     setTempDay('');
     setTempMonth('');
     setTempYear('');
-
-    setTempLanguage(language);
   };
 
   return (
@@ -259,7 +261,6 @@ function App() {
               </div>
             </div>
           </div>
-
           <HighlightCarousel items={highlightItems} />
         </aside>
       </div>

@@ -3,6 +3,9 @@
 backend/pib_data.db
 backend/pib_data.db-journal
 backend/images/
+backend/pib_translations.db
+*.db
+*.sqlite3
 
 # Debug files
 backend/error.html
@@ -185,3 +188,4 @@ marimo/_lsp/
 __marimo__/
 
 node_modules/
+

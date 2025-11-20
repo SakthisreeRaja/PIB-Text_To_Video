@@ -15,13 +15,13 @@ function parseDate(d) {
   const clean = d.split(" by ")[0].trim().split(" ");
   const day = parseInt(clean[0]) || 1;
   const mon = (clean[1] || "JAN").toUpperCase();
-  const monthMapShort = { JAN:0, FEB:1, MAR:2, APR:3, MAY:4, JUN:5, JUL:6, AUG:7, SEP:8, OCT:9, NOV:10, DEC:11 };
+  const monthMapShort = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11 };
   const month = monthMapShort[mon] ?? 0;
   const year = parseInt(clean[2]) || 1970;
   const timeStr = clean[3] || "12:00AM";
   const isPM = /PM/i.test(timeStr);
   const timeOnly = timeStr.replace(/AM|PM/i, "");
-  const [hStr="12", mStr="00"] = timeOnly.split(":");
+  const [hStr = "12", mStr = "00"] = timeOnly.split(":");
   let h = parseInt(hStr) || 0;
   const m = parseInt(mStr) || 0;
   if (isPM && h !== 12) h += 12;
@@ -29,10 +29,8 @@ function parseDate(d) {
   return new Date(year, month, day, h, m).getTime();
 }
 
-// --- HELPER TO REMOVE 'by PIB Delhi' ---
 const cleanDateDisplay = (dateStr) => {
   if (!dateStr) return "";
-  // Split at ' by ' and take the first part (the date/time)
   return dateStr.split(' by ')[0];
 };
 
@@ -46,6 +44,20 @@ function PressList({ category, language, day, month, year, onSortedData }) {
   const [SearchTerm, setSearchTerm] = useState('');
   const [playvideo, setPlayvideo] = useState(null);
 
+
+  const getContent = (item) => {
+    if (!language || language === 'en') {
+      return { title: item.title, full_text: item.full_text };
+    }
+    const titleKey = `title_${language}`;
+    const textKey = `text_${language}`;
+
+    return {
+      title: item[titleKey] || item.title,
+      full_text: item[textKey] || item.full_text
+    };
+  };
+
   useEffect(() => {
     let cancelled = false;
     const fetchData = async () => {
@@ -53,7 +65,9 @@ function PressList({ category, language, day, month, year, onSortedData }) {
         const res = await fetch(`${API_BASE_URL}/api/releases`);
         const data = await res.json();
         const arr = Array.isArray(data) ? data : [];
-        const globallySorted = [...arr].sort((a,b) => parseDate(b.release_date) - parseDate(a.release_date));
+
+        const globallySorted = [...arr].sort((a, b) => parseDate(b.release_date) - parseDate(a.release_date));
+
         if (!cancelled) {
           if (typeof onSortedData === "function") onSortedData(globallySorted);
           setPressReleases(globallySorted);
@@ -78,20 +92,23 @@ function PressList({ category, language, day, month, year, onSortedData }) {
 
   const filteredReleases = Array.isArray(pressReleases)
     ? pressReleases.filter((release) => {
-        const matchesCategory = category === 'All Ministry' || release.ministry_name === category;
-        const parts = (release.release_date || "").split(" ");
-        const releaseDay = parseInt(parts[0]) || null;
-        const releaseMonth = (parts[1] || "").toUpperCase();
-        const releaseYear = release.release_year;
-        const matchesDay = !day || releaseDay === parseInt(day);
-        const matchesMonth = !month || releaseMonth === monthMap[month];
-        const matchesYear = !year || releaseYear === parseInt(year);
-        const matchesSearch = (release.title || "").toLowerCase().includes(SearchTerm.toLowerCase());
-        return matchesCategory && matchesDay && matchesMonth && matchesYear && matchesSearch;
-      })
+      const { title: displayTitle } = getContent(release);
+
+      const matchesCategory = category === 'All Ministry' || release.ministry_name === category;
+      const parts = (release.release_date || "").split(" ");
+      const releaseDay = parseInt(parts[0]) || null;
+      const releaseMonth = (parts[1] || "").toUpperCase();
+      const releaseYear = release.release_year;
+      const matchesDay = !day || releaseDay === parseInt(day);
+      const matchesMonth = !month || releaseMonth === monthMap[month];
+      const matchesYear = !year || releaseYear === parseInt(year);
+      const matchesSearch = (displayTitle || "").toLowerCase().includes(SearchTerm.toLowerCase());
+
+      return matchesCategory && matchesDay && matchesMonth && matchesYear && matchesSearch;
+    })
     : [];
 
-  const sortedReleases = [...filteredReleases].sort((a,b) => parseDate(b.release_date) - parseDate(a.release_date));
+  const sortedReleases = [...filteredReleases].sort((a, b) => parseDate(b.release_date) - parseDate(a.release_date));
 
   useEffect(() => { setCurrentPage(1); }, [category, language, day, month, year, SearchTerm]);
 
@@ -117,7 +134,7 @@ function PressList({ category, language, day, month, year, onSortedData }) {
     );
   }
 
- if (error) return <div className="error-message">{t('error_load_releases')}</div>;
+  if (error) return <div className="error-message">{t('error_load_releases')}</div>;
 
   return (
     <section className='press-list'>
@@ -134,18 +151,22 @@ function PressList({ category, language, day, month, year, onSortedData }) {
 
       <div className='cards'>
         {currentItems.length > 0 ? (
-          currentItems.map((release) => (
-            <div key={release.id} className="card">
-              <h3>{release.title}</h3>
-              
-              <p>{cleanDateDisplay(release.release_date)}</p>
-              
-              <button className='video-btn' onClick={() => setPlayvideo(release)}>
-                <FaRegPlayCircle className='video-icon' />
-                {t('watch_btn')}
-              </button>
-            </div>
-          ))
+          currentItems.map((release) => {
+            const { title } = getContent(release);
+
+            return (
+              <div key={release.id} className="card">
+                <h3>{title}</h3>
+
+                <p>{cleanDateDisplay(release.release_date)}</p>
+
+                <button className='video-btn' onClick={() => setPlayvideo(release)}>
+                  <FaRegPlayCircle className='video-icon' />
+                  {t('watch_btn')}
+                </button>
+              </div>
+            );
+          })
         ) : (
           <div className='no-results'>
             <p>{t('no_results')}</p>
@@ -170,7 +191,11 @@ function PressList({ category, language, day, month, year, onSortedData }) {
       )}
 
       {playvideo && (
-        <VideoModal releaseData={playvideo} videoSrc={SAMPLE_VIDEO_URL} onClose={() => setPlayvideo(null)} />
+        <VideoModal releaseData={playvideo}
+          videoSrc={SAMPLE_VIDEO_URL}
+          onClose={() => setPlayvideo(null)}
+          language={language}
+        />
       )}
     </section>
   );

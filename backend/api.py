@@ -6,10 +6,9 @@ import os
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(BACKEND_DIR, 'pib_data.db')
-
+TRANS_DB_FILE = os.path.join(BACKEND_DIR, 'pib_translations.db')
 
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,40 +18,48 @@ app.add_middleware(
     allow_headers=["*"], 
 )
 
-
 def get_db_connection():
-    """Establishes a connection to the SQLite database."""
     conn = sqlite3.connect(DB_FILE)
-    
     conn.row_factory = sqlite3.Row
+    
+    if os.path.exists(TRANS_DB_FILE):
+        try:
+            conn.execute(f"ATTACH DATABASE '{TRANS_DB_FILE}' AS trans_db")
+        except Exception as e:
+            print(f"Warning: Could not attach translation DB: {e}")
+            
     return conn
-
 
 @app.get("/")
 def read_root():
-    """A simple root endpoint to check if the API is running."""
     return {"message": "PIB Text-to-Video API is running!"}
 
 @app.get("/api/releases")
 def get_all_releases():
-    """
-    This is the main API endpoint. It fetches all press releases
-    from the database and returns them as a JSON list.
-    """
     print("API: /api/releases endpoint was called.")
+    conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute("SELECT * FROM press_releases ORDER BY id DESC")
+       
+        query = """
+            SELECT main.*, t.* FROM press_releases main 
+            LEFT JOIN trans_db.translations t ON main.id = t.id 
+            ORDER BY main.id DESC
+        """
+        
+        cursor.execute(query)
         releases = cursor.fetchall()
         
-        conn.close()
         
+        results = [dict(row) for row in releases]
         
-        return [dict(row) for row in releases]
+        return results
         
     except Exception as e:
         print(f"Error fetching releases: {e}")
         return {"error": str(e)}
-
+    finally:
+        if conn:
+            conn.close()
