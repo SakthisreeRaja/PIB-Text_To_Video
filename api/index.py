@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware  # <--- Added Compression
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
@@ -10,6 +11,8 @@ import certifi
 load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,13 +45,30 @@ collection = db[COLLECTION_NAME]
 @app.get("/")
 def read_root():
     return {"message": "PIB Text-to-Video API is running on MongoDB Atlas!"}
-
 @app.get("/api/releases")
 def get_all_releases():
     try:
         client.admin.command('ping')
-        releases = list(collection.find({}, {"_id": 0}))
+        projection = {
+            "_id": 0,
+            "full_text": 0,
+            "text_hi": 0, "text_ur": 0, "text_pa": 0, "text_gu": 0,
+            "text_mr": 0, "text_te": 0, "text_kn": 0, "text_ml": 0,
+            "text_ta": 0, "text_or": 0, "text_bn": 0, "text_as": 0,
+            "text_mni": 0
+        }
+        
+        releases = list(collection.find({}, projection))
         releases.sort(key=lambda x: x.get('sqlite_id', 0), reverse=True)
         return releases
+    except Exception as e:
+        return {"error": str(e)}
+@app.get("/api/releases/{item_id}")
+def get_release_detail(item_id: int):
+    try:
+        item = collection.find_one({"id": item_id}, {"_id": 0})
+        if item:
+            return item
+        return {"error": "Item not found"}
     except Exception as e:
         return {"error": str(e)}

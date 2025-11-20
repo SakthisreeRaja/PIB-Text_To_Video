@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import './PressList.css';
 import SearchBar from './Searchbar.jsx';
-import { FaRegPlayCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaRegPlayCircle, FaChevronLeft, FaChevronRight, FaSpinner } from 'react-icons/fa';
 import ImageCarousel from './ImageCarousel.jsx';
 import VideoModal from './VideoModal.jsx';
 import { useTranslation } from 'react-i18next';
 
 const SAMPLE_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = ""; 
 const ITEMS_PER_PAGE = 9;
 
 function parseDate(d) {
@@ -43,21 +43,17 @@ function PressList({ category, language, day, month, year, onSortedData }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [SearchTerm, setSearchTerm] = useState('');
   const [playvideo, setPlayvideo] = useState(null);
-
+  const [fetchingId, setFetchingId] = useState(null); 
 
   const getContent = (item) => {
     if (!language || language === 'en') {
-      return { title: item.title, full_text: item.full_text };
+      return { title: item.title }; 
     }
     const titleKey = `title_${language}`;
-    const textKey = `text_${language}`;
-
     return {
       title: item[titleKey] || item.title,
-      full_text: item[textKey] || item.full_text
     };
   };
-
   useEffect(() => {
     let cancelled = false;
     const fetchData = async () => {
@@ -83,6 +79,22 @@ function PressList({ category, language, day, month, year, onSortedData }) {
     fetchData();
     return () => { cancelled = true; };
   }, []);
+
+  const handleWatchClick = async (releaseId) => {
+    setFetchingId(releaseId); 
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/releases/${releaseId}`);
+      if (!res.ok) throw new Error("Failed to fetch details");
+      
+      const fullData = await res.json();
+      setPlayvideo(fullData); 
+    } catch (err) {
+      console.error(err);
+      alert("Could not load content.");
+    } finally {
+      setFetchingId(null); 
+    }
+  };
 
   const monthMap = {
     January: "JAN", February: "FEB", March: "MAR", April: "APR",
@@ -153,6 +165,7 @@ function PressList({ category, language, day, month, year, onSortedData }) {
         {currentItems.length > 0 ? (
           currentItems.map((release) => {
             const { title } = getContent(release);
+            const isFetching = fetchingId === release.id;
 
             return (
               <div key={release.id} className="card">
@@ -160,9 +173,20 @@ function PressList({ category, language, day, month, year, onSortedData }) {
 
                 <p>{cleanDateDisplay(release.release_date)}</p>
 
-                <button className='video-btn' onClick={() => setPlayvideo(release)}>
-                  <FaRegPlayCircle className='video-icon' />
-                  {t('watch_btn')}
+                <button 
+                    className='video-btn' 
+                    onClick={() => handleWatchClick(release.id)}
+                    disabled={isFetching}
+                    style={{ opacity: isFetching ? 0.7 : 1, cursor: isFetching ? 'wait' : 'pointer' }}
+                >
+                  {isFetching ? (
+                     <FaSpinner className='video-icon fa-spin' style={{ animation: 'spin 1s linear infinite' }} />
+                  ) : (
+                     <FaRegPlayCircle className='video-icon' />
+                  )}
+                  <span style={{ marginLeft: '8px' }}>
+                    {isFetching ? t('loading') : t('watch_btn')}
+                  </span>
                 </button>
               </div>
             );
@@ -191,7 +215,8 @@ function PressList({ category, language, day, month, year, onSortedData }) {
       )}
 
       {playvideo && (
-        <VideoModal releaseData={playvideo}
+        <VideoModal 
+          releaseData={playvideo}
           videoSrc={SAMPLE_VIDEO_URL}
           onClose={() => setPlayvideo(null)}
           language={language}
