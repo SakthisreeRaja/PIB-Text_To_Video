@@ -7,6 +7,9 @@ backend/pib_translations.db
 *.db
 *.sqlite3
 
+#Security files
+backend/.env
+
 # Debug files
 backend/error.html
 backend/error.png
