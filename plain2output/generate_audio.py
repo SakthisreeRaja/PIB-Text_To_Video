@@ -5,16 +5,14 @@ import time
 import sys
 from config import OUTPUT_WAV_FILE, DURATION_FILE 
 
-# ----------------------------------------------------------------------
-# --- New Function: Get Audio Duration ---
-# ----------------------------------------------------------------------
+
 
 def get_audio_duration(audio_file):
-    """Probes the audio file using FFmpeg to get its duration in seconds."""
+    
     try:
-        # Use ffmpeg.probe to get metadata
+       
         probe = ffmpeg.probe(audio_file)
-        # Extract the duration from the stream data (duration of the first stream)
+        
         duration = float(probe['streams'][0]['duration'])
         return duration
     except ffmpeg.Error as e:
@@ -24,9 +22,6 @@ def get_audio_duration(audio_file):
         print(f"Unexpected error getting audio duration: {e}")
         return 0.0
 
-# ----------------------------------------------------------------------
-# --- Main Audio Generation Function ---
-# ----------------------------------------------------------------------
 
 def generate_gtts_audio(text_prompt, output_wav, lang_code):
     temp_mp3 = "temp_gtts_audio.mp3"
@@ -34,7 +29,7 @@ def generate_gtts_audio(text_prompt, output_wav, lang_code):
     print(f"Generating audio for language code '{lang_code}' using gTTS...")
     start_time = time.time()
     
-    # 1. Generate MP3 via gTTS
+ 
     try:
         tts = gTTS(text=text_prompt, lang=lang_code, slow=False)
         tts.save(temp_mp3)
@@ -48,9 +43,9 @@ def generate_gtts_audio(text_prompt, output_wav, lang_code):
         return False, 0.0
 
     
-    # 2. Convert MP3 to WAV, Add Padding, and Save Final WAV
+    
     try:
-        # Convert and pad in a single pipeline for efficiency and reliability
+        
         print(f"Converting MP3 to padded WAV and saving to {output_wav} (with 500ms lead-in silence)...")
         (
             ffmpeg
@@ -58,12 +53,12 @@ def generate_gtts_audio(text_prompt, output_wav, lang_code):
             .output(output_wav, 
                     acodec='pcm_s16le', 
                     ar=24000, 
-                    af='adelay=500|500') # Add 500ms delay/padding
+                    af='adelay=500|500')
             .run(overwrite_output=True) 
         )
         os.remove(temp_mp3)
         
-        # CRITICAL CHECK: Did the final conversion work and create content?
+        
         if not os.path.exists(output_wav) or os.path.getsize(output_wav) == 0:
             print(f"FATAL ERROR: FFmpeg failed to convert/pad to WAV. {output_wav} is empty.")
             return False, 0.0
@@ -77,7 +72,7 @@ def generate_gtts_audio(text_prompt, output_wav, lang_code):
         print(f"An unexpected error occurred during audio processing: {e}")
         return False, 0.0
         
-    # 3. Calculate and Save Duration
+    
     duration = get_audio_duration(output_wav)
     if duration > 0:
         with open(DURATION_FILE, 'w') as f:
@@ -89,5 +84,5 @@ def generate_gtts_audio(text_prompt, output_wav, lang_code):
 
     print(f"Audio generation took: {time.time() - start_time:.2f}s")
     
-    # Return success status and duration
+    
     return True, duration
