@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pymongo
+python-dotenv
+dnspython
+certifi
+cloudinary
+requests
