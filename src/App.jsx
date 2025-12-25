@@ -60,7 +60,7 @@ function App() {
   return (
     <div>
       <div className='header'>
-        <img src="/emblem.png" id='leftimg' alt="emblem" />
+        <img src="/header.png" id='leftimg' alt="header" />
 
         <div className="titles">
           <h1 id='title'>{t('app_title')}</h1>
